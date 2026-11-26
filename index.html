@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internship Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a calm working instrument for one person's job search; terse labels, no fuss.
+   IDEA: a control-room panel: one big readout of the pipeline, thin strips beside it.
+   PICTURE: the pipeline readout (total + status strips) and the live list below it.
+   COLOUR and TYPE: steel panel, black ink, white fields, alarm red for action; Inter Tight + Inter.
+   LAYOUT: readout band on top, tabbed list under it; stacks on phones. */
+:root{color-scheme:light dark;
+ --bg:light-dark(#eef1f3,#16191c);--panel:light-dark(#d5dbe0,#20252a);--card:light-dark(#fff,#1c2024);
+ --ink:light-dark(#0b0d0f,#eef1f3);--mute:light-dark(#4d5661,#9aa4ae);--line:light-dark(#c3cad1,#2e353c);
+ --red:#e8251a;--redink:light-dark(#b8160d,#ff6a5f);--ok:light-dark(#1f6b3a,#6fd39a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,.big{font-family:"Inter Tight",Inter,sans-serif;font-weight:700;line-height:1.05;margin:0}
+.band{padding:clamp(20px,3vw,40px) max(4vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header.band{background:var(--panel);border-bottom:1px solid var(--line)}
+.top{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.6fr);gap:clamp(16px,3vw,40px);align-items:end}
+h1{font-size:clamp(28px,4vw,40px);text-wrap:balance}
+.sub{color:var(--mute);margin:6px 0 0;font-size:15px}
+.readout{display:flex;gap:18px;align-items:flex-end;margin-top:18px;flex-wrap:wrap}
+.big{font-size:clamp(56px,9vw,96px);letter-spacing:-.02em}
+.big small{display:block;font:500 14px Inter,sans-serif;color:var(--mute);letter-spacing:0;margin-top:4px}
+.strips{display:grid;gap:7px}
+.strip{display:grid;grid-template-columns:8.5em minmax(0,1fr) 2.5em;gap:10px;align-items:center;font-size:14px}
+.strip .bar{height:12px;background:var(--card);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.strip .bar i{display:block;height:100%;background:var(--ink)}
+.strip.hot .bar i{background:var(--red)}
+.strip b{text-align:right;font-variant-numeric:tabular-nums}
+nav.tabs{display:flex;gap:4px;margin-top:22px;flex-wrap:wrap}
+nav.tabs a{padding:10px 16px;min-height:44px;border-radius:6px 6px 0 0;text-decoration:none;color:var(--ink);font-weight:600;border:1px solid transparent;border-bottom:0}
+nav.tabs a[aria-current=page]{background:var(--bg);border-color:var(--line)}
+nav.tabs .n{color:var(--mute);font-weight:500}
+.bar-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+input,select,textarea,button{font:inherit;font-size:16px;color:var(--ink)}
+input,select,textarea{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:9px 11px;min-height:44px}
+input[type=search]{flex:1 1 220px}
+textarea{width:100%;min-height:84px;resize:vertical}
+button,.btn{min-height:44px;padding:9px 14px;border-radius:6px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.go{background:var(--red);color:#fff;border-color:var(--red)}
+.danger{color:var(--redink)}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.meta{color:var(--mute);font-size:14px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:13px;color:var(--mute);font-weight:600;background:var(--panel)}
+td.date,th.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+td select{min-height:38px;padding:6px 8px;font-size:15px}
+.co{font-weight:600}.role{color:var(--mute);font-size:15px}
+.openbtn{background:none;border:0;padding:0;min-height:0;text-align:left;font-weight:inherit;cursor:pointer;color:inherit;display:block}
+tr.detail td{background:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+label{display:grid;gap:4px;font-size:14px;color:var(--mute)}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.post{display:grid;grid-template-columns:4.6em 5em minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.post .when{font-size:14px;color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+.post .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--panel);color:var(--mute);margin-left:6px;vertical-align:2px}
+.post.done{opacity:.55}
+.resume{display:inline-block;margin-top:6px;font-size:13px;font-weight:600;padding:3px 9px;border-radius:4px;border:1px solid var(--line)}
+.resume.emb{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.resume.swe{background:var(--card);color:var(--ink)}
+.resume span{font-weight:400;opacity:.8}
+.score{display:grid;justify-items:center;gap:2px;min-width:4.2em}
+.score b{font:700 26px/1 "Inter Tight",Inter,sans-serif;font-variant-numeric:tabular-nums}
+.score small{font-size:12px;font-weight:600;color:var(--mute);white-space:nowrap}
+.score.s4 b{color:var(--ok)}.score.s1 b{color:var(--redink)}
+details.why{margin-top:6px;font-size:13px;color:var(--mute)}details.why summary{cursor:pointer;min-height:24px}
+details.why ul{margin:4px 0 0;padding-left:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px}
+.note{padding:12px 14px;border-left:4px solid var(--red);background:var(--card);margin-bottom:14px}
+.empty{padding:28px;text-align:center;color:var(--mute)}
+.scroll{overflow-x:auto}
+.authbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-bottom:8px;flex-wrap:wrap}
+[hidden]{display:none!important}
+.gated{display:none!important}
+@media(max-width:760px){.top{grid-template-columns:1fr}}
+@media(max-width:600px){.post{grid-template-columns:4.6em minmax(0,1fr)}.post .when{grid-column:2;grid-row:1}.post>div:nth-child(3),.post .acts{grid-column:1/-1}.post .acts{justify-content:flex-start}
+ table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 12px;padding-inline-start:8em}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-7.5em;color:var(--mute);font-size:13px}.stack td:empty{display:none}.stack tr.detail{display:block}.stack tr.detail td{padding:12px}.stack tr.detail td::before{display:none}}
+@media(prefers-reduced-motion:no-preference){.strip .bar i{transition:width .5s ease}}
+</style>
+</head>
+<body>
+<header class="band"><div class="wrap">
+ <div class="top">
+  <div>
+   <div class="authbar"><span class="meta" id="who"></span><button type="button" id="signout" hidden>Sign out</button></div>
+   <h1>Internship board</h1>
+   <p class="sub">Summer 2027 applications and matching postings, in one place.</p>
+   <div class="readout"><div class="big" id="total">–<small>applications</small></div></div>
+  </div>
+  <div class="strips" id="strips"></div>
+ </div>
+ <nav class="tabs" aria-label="Views">
+  <a href="#applications" id="tab-applications">Applications <span class="n" id="n-apps"></span></a>
+  <a href="#postings" id="tab-postings">New postings <span class="n" id="n-posts"></span></a>
+ </nav>
+</div></header>
+
+<main class="band"><div class="wrap">
+ <section class="panel" id="signin" hidden>
+  <h2 style="font-size:24px;margin-bottom:8px">Sign in to see your board</h2>
+  <p class="meta" style="margin:0 0 14px">Your applications are private to your Google account.</p>
+  <button class="primary" type="button" id="signin-btn">Sign in with Google</button>
+ </section>
+ <section class="panel" id="import" hidden>
+  <h2 style="font-size:20px;margin-bottom:8px">Bring in your existing applications</h2>
+  <p class="meta" style="margin:0 0 12px">Choose the <b>my-applications.json</b> file to load your applications. You only need to do this once.</p>
+  <input type="file" id="import-file" accept="application/json,.json">
+ </section>
+ <div class="note" id="status" hidden></div>
+
+ <section id="view-applications">
+  <div class="bar-tools">
+   <input type="search" id="q-apps" placeholder="Search company or role" aria-label="Search applications">
+   <select id="f-status" aria-label="Filter by status"><option value="">All statuses</option></select>
+   <button class="primary" id="add-btn" type="button">+ Add application</button>
+  </div>
+  <form class="panel" id="add-form" hidden>
+   <div class="grid">
+    <label>Company<input id="a-company" required></label>
+    <label>Role<input id="a-title" required></label>
+    <label>Posting link<input id="a-link" type="url" placeholder="https://"></label>
+    <label>Date applied<input id="a-date" type="date"></label>
+    <label>Status<select id="a-status"></select></label>
+   </div>
+   <div class="row-actions"><button class="primary" type="submit">Save</button><button type="button" id="add-cancel">Cancel</button></div>
+  </form>
+  <div class="scroll"><table class="stack" id="apps-table">
+   <thead><tr><th>Company</th><th>Role</th><th>Status</th><th class="date">Applied</th><th>Stage</th><th>Link</th></tr></thead>
+   <tbody id="apps-body"><tr><td colspan="6" class="empty">Loading your applications…</td></tr></tbody>
+  </table></div>
+ </section>
+
+ <section id="view-postings" hidden>
+  <div class="bar-tools">
+   <input type="search" id="q-posts" placeholder="Search company, role or location" aria-label="Search postings">
+   <select id="f-cat" aria-label="Filter by category"><option value="">All categories</option></select>
+   <select id="sort" aria-label="Sort postings"><option value="new">Newest first</option><option value="fit">Best fit first</option></select>
+   <select id="f-resume" aria-label="Filter by resume"><option value="">Either resume</option><option value="emb">Embedded resume</option><option value="swe">SWE resume</option></select>
+   <label style="display:flex;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="show-hidden" style="min-height:0;width:20px;height:20px"> Show applied &amp; hidden</label>
+  </div>
+  <p class="meta" id="feed-meta"></p>
+  <div id="posts"><p class="empty">Loading postings…</p></div>
+  <div style="text-align:center;margin-top:10px"><button id="more" type="button" hidden>Show more</button></div>
+ </section>
+</div></main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { firebaseConfig } from "./firebase-config.js";
+{
+const STATUSES=['Pending','Applied','Recruiter Screen','Interview','Offer','Rejected','Ghosted','Dropped'];
+const STAGES=['','First Round','Second Round','Third Round','Fourth Round','Fifth Round'];
+const ACTIVE=new Set(['Recruiter Screen','Interview','Offer']);
+let db=null, apps=[], feed=null, pstate={}, openId=null, showN=60, confirmDel=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=u=>/^https:\/\//i.test(String(u||''))?String(u):'';
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const fmt=iso=>{if(!iso)return'';const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString(undefined,{month:'short',day:'numeric'})};
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const baseUrl=u=>String(u||'').split(/[?#]/)[0].replace(/\/+$/,'').toLowerCase();
+const opts=(list,sel)=>list.map(v=>`<option${v===sel?' selected':''} value="${esc(v)}">${esc(v||'—')}</option>`).join('');
+
+$('f-status').insertAdjacentHTML('beforeend',opts(STATUSES));
+$('a-status').innerHTML=opts(STATUSES,'Applied');
+
+function note(msg){const n=$('status');n.hidden=!msg;n.textContent=msg||''}
+
+/* ---------- header readout ---------- */
+function renderReadout(){
+ $('total').firstChild.nodeValue=String(apps.length);
+ const counts=STATUSES.map(s=>[s,apps.filter(a=>a.status===s).length]).filter(([,n])=>n>0);
+ const max=Math.max(1,...counts.map(c=>c[1]));
+ $('strips').innerHTML=counts.map(([s,n])=>`<div class="strip${ACTIVE.has(s)?' hot':''}"><span>${esc(s)}</span><div class="bar"><i style="width:${n/max*100}%"></i></div><b>${n}</b></div>`).join('');
+ $('n-apps').textContent=apps.length?`(${apps.length})`:'';
+}
+
+/* ---------- applications ---------- */
+function renderApps(){
+ const q=$('q-apps').value.trim().toLowerCase(), f=$('f-status').value;
+ const list=apps.filter(a=>(!f||a.status===f)&&(!q||(a.company+' '+a.title).toLowerCase().includes(q)))
+  .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ if(!list.length){$('apps-body').innerHTML=`<tr><td colspan="6" class="empty">${apps.length?'No applications match.':'No applications yet. Add one, or mark a posting as applied.'}</td></tr>`;return}
+ $('apps-body').innerHTML=list.map(a=>{
+  const link=safeUrl(a.link);
+  const row=`<tr data-id="${esc(a.id)}">
+   <td><button class="openbtn co" data-open="${esc(a.id)}" aria-expanded="${openId===a.id}">${esc(a.company)}</button></td>
+   <td><button class="openbtn role" data-open="${esc(a.id)}">${esc(a.title)}</button></td>
+   <td><select data-status="${esc(a.id)}" aria-label="Status for ${esc(a.company)}">${opts(STATUSES,a.status)}</select></td>
+   <td class="date">${esc(fmt(a.date))}</td>
+   <td>${esc(a.stage)}</td>
+   <td>${link?`<a href="${esc(link)}" target="_blank" rel="noopener">Posting ↗</a>`:''}</td></tr>`;
+  if(openId!==a.id)return row;
+  return row+`<tr class="detail"><td colspan="6"><div class="grid">
+   <label>Company<input data-f="company" value="${esc(a.company)}"></label>
+   <label>Role<input data-f="title" value="${esc(a.title)}"></label>
+   <label>Posting link<input data-f="link" type="url" value="${esc(a.link)}"></label>
+   <label>Date applied<input data-f="date" type="date" value="${esc(a.date)}"></label>
+   <label>Interview stage<select data-f="stage">${opts(STAGES,a.stage)}</select></label>
+   <label>Contact<input data-f="contact" value="${esc(a.contact)}"></label>
+   <label>Interviewer<input data-f="interviewer" value="${esc(a.interviewer)}"></label>
+  </div>
+  <label style="margin-top:12px">Notes<textarea data-f="notes">${esc(a.notes)}</textarea></label>
+  <p class="meta">${(a.history||[]).map(h=>`${esc(fmt(h.at))}: ${h.from?esc(h.from)+' → ':''}${esc(h.to)}`).join(' · ')}</p>
+  <div class="row-actions"><button class="primary" data-save="${esc(a.id)}">Save changes</button><button data-close>Close</button>
+   <button class="danger" data-del="${esc(a.id)}">${confirmDel===a.id?'Click again to delete':'Delete'}</button></div>
+  </td></tr>`;
+ }).join('');
+}
+
+async function write(ref,fn,data){
+ try{await ref[fn](data);return true}
+ catch(e){note(e&&e.code==='quota_exceeded'?'Storage is full, so that change wasn’t saved.':'That change couldn’t be saved. Try again in a moment.');return false}
+}
+
+$('apps-body').addEventListener('click',async e=>{
+ const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.open){openId=openId===t.dataset.open?null:t.dataset.open;confirmDel=null;renderApps();return}
+ if('close' in t.dataset){openId=null;renderApps();return}
+ if(t.dataset.save){
+  const tr=t.closest('tr'),upd={};
+  tr.querySelectorAll('[data-f]').forEach(el=>upd[el.dataset.f]=el.value.trim());
+  if(await write(db.doc('apps/'+t.dataset.save),'update',upd)){openId=null;note('')}
+  return}
+ if(t.dataset.del){
+  if(confirmDel!==t.dataset.del){confirmDel=t.dataset.del;renderApps();return}
+  await write(db.doc('apps/'+t.dataset.del),'delete');openId=null;confirmDel=null}
+});
+$('apps-body').addEventListener('change',async e=>{
+ const id=e.target.dataset.status;if(!id)return;
+ const a=apps.find(x=>x.id===id);if(!a||a.status===e.target.value)return;
+ const history=[...(a.history||[]),{at:today(),from:a.status,to:e.target.value}];
+ await write(db.doc('apps/'+id),'update',{status:e.target.value,history});
+});
+$('q-apps').addEventListener('input',renderApps);
+$('f-status').addEventListener('change',renderApps);
+$('add-btn').addEventListener('click',()=>{$('add-form').hidden=false;$('a-date').value=today();$('a-company').focus()});
+$('add-cancel').addEventListener('click',()=>{$('add-form').hidden=true});
+$('add-form').addEventListener('submit',async e=>{
+ e.preventDefault();if(!db)return;
+ const ok=db&&await addApp({company:$('a-company').value.trim(),title:$('a-title').value.trim(),link:$('a-link').value.trim(),date:$('a-date').value||today(),status:$('a-status').value});
+ if(ok){$('add-form').reset();$('add-form').hidden=true}
+});
+function addApp(a){
+ const ref=db.collection('apps').doc();
+ return write(ref,'set',{company:a.company,title:a.title,status:a.status||'Applied',link:a.link||'',contact:'',date:a.date,stage:'',interviewer:'',notes:a.notes||'',history:[{at:a.date,from:'',to:a.status||'Applied'}]});
+}
+
+/* ---------- postings ---------- */
+// Which resume fits: hardware-side titles → embedded resume; software/ML titles → SWE resume
+const EMB_RE=/embedded|firmware|hardware|electrical|electronic|fpga|asic|\brtl\b|vlsi|verification|validation|silicon|semiconductor|circuit|pcb|power|signal integrity|controls?\b|robotic|\btest|systems? eng|device|chip|analog|mixed.signal|sensor|avionics|mechatronic|edge ai/i;
+const SWE_RE=/software|\bsde\b|developer|full.?stack|back.?end|front.?end|web|cloud|data|machine learning|\bml\b|\bai\b|platform|devops|infrastructure|security/i;
+// Fit score (0–100): how well the role lines up with her resumes. Title, company and location only.
+const FIT=[
+ [/embedded|firmware|microcontroller|\bmcu\b|risc.?v|computer architecture|\bcpu\b|edge ai|embedded (ml|machine)/i,20,'Core match: embedded / firmware / architecture work, like your RISC-V emulator and Arduino monitor'],
+ [/semiconductor|device characterization|epitax|\bmbe\b|materials|silicon validation|post.?silicon/i,15,'Matches your semiconductor research in the Mi lab'],
+ [/validation|test (automation|engineer)|\btest\b|verification engineer/i,10,'Test/validation roles fit your emulator validation work'],
+ [/software|\bsde\b|c\+\+/i,8,'Software role where your C++ projects count'],
+ [/machine learning|\bml\b|\bai\b/i,6,'ML experience from your RHEED analysis research'],
+ [/hardware|electrical|electronics|controls?\b|robotic|automation|systems? eng/i,6,'General hardware/systems role; coursework and projects are relevant'],
+];
+const MISS=[
+ [/\brf\b|antenna|microwave|power electronics|power integrity|signal integrity|analog design|mixed.signal|pcb|layout|optical|photonic|thermal/i,-15,'Specialized area your resumes don’t show yet'],
+ [/\basic\b|\brtl\b|verilog|vhdl|physical design|\bfpga\b|digital design/i,-10,'Usually wants HDL (Verilog/VHDL), which isn’t on your resume yet'],
+ [/senior|(?<!under)graduate|master|\bms\b|ph\.?d|rising (junior|senior)|junior\/senior/i,-20,'Title suggests it targets upperclassmen or grad students'],
+ [/data scien|analyst|full.?stack|front.?end|web/i,-5,'Weaker fit for your embedded focus'],
+];
+const EARLY=/freshman|sophomore|first.?year|second.?year|explore|discovery|early (career|talent)|underclass|pathways/i;
+const TOP=/^(nvidia|apple|google|meta|microsoft|amazon|tesla|spacex|openai|anthropic|jane street|citadel|hudson river|two sigma|netflix|stripe|qualcomm|waymo|tiktok|bytedance|snap|linkedin|databricks)\b/i;
+const MIDWEST=/,\s*(oh|in|il|wi|mn|ia|mo|pa)\b/i;
+function scoreFor(p){
+ const t=String(p.t||''),why=[];let s=50;
+ let best=0,bestWhy='';FIT.forEach(([re,v,w])=>{if(re.test(t)&&v>best){best=v;bestWhy=w}});
+ if(best){s+=best;why.push('+'+best+': '+bestWhy)}else why.push('+0: No clear skill match in the title');
+ MISS.forEach(([re,v,w])=>{if(re.test(t)){s+=v;why.push(v+': '+w)}});
+ if(EARLY.test(t)){s+=15;why.push('+15: Built for early-year students like you')}
+ if(TOP.test(String(p.c||''))){s-=10;why.push('−10: Very competitive company for a 2nd-year')}
+ const l=String(p.l||'');
+ if(/,\s*mi\b|michigan/i.test(l)){s+=10;why.push('+10: In Michigan, where UMich students get recruited most')}
+ else if(MIDWEST.test(l)){s+=5;why.push('+5: Midwest location close to UMich')}
+ if(p.d&&Date.now()/1000-p.d<7*86400){s+=5;why.push('+5: Posted this week, so applying now is early')}
+ s=Math.max(5,Math.min(95,s));
+ const lvl=s>=75?['Strong','s4']:s>=60?['Good','s3']:s>=45?['Possible','s2']:['Reach','s1'];
+ return{s,label:lvl[0],cls:lvl[1],why};
+}
+function resumeFor(p){
+ let m=String(p.t||'').match(EMB_RE);if(m)return{k:'emb',why:m[0]};
+ // Software roles at hardware companies → embedded resume (hardware context counts there)
+ if(p.cat==='Hardware')return{k:'emb',why:'hardware company'};
+ m=String(p.t||'').match(SWE_RE);if(m)return{k:'swe',why:m[0]};
+ return p.cat==='Hardware'?{k:'emb',why:'hardware category'}:{k:'swe',why:'software category'};
+}
+function appliedTo(p){
+ const u=baseUrl(p.u),k=norm(p.c)+'|'+norm(p.t);
+ return apps.some(a=>(a.link&&baseUrl(a.link)===u)||norm(a.company)+'|'+norm(a.title)===k);
+}
+function renderPosts(){
+ if(!feed){return}
+ const all=feed.postings||[];
+ const cats=[...new Set(all.map(p=>p.cat).filter(Boolean))].sort();
+ const fc=$('f-cat'),cur=fc.value;
+ fc.innerHTML='<option value="">All categories</option>'+opts(cats,cur);
+ const q=$('q-posts').value.trim().toLowerCase(),cat=fc.value,rf=$('f-resume').value,showHidden=$('show-hidden').checked;
+ const tagged=all.map(p=>({p,state:pstate[p.id]||(appliedTo(p)?'applied':'')}));
+ const fresh=tagged.filter(x=>!x.state).length;
+ $('n-posts').textContent=`(${fresh})`;
+ const list0=tagged.filter(({p,state})=>(showHidden||!state)&&(!cat||p.cat===cat)&&(!rf||resumeFor(p).k===rf)&&(!q||(p.c+' '+p.t+' '+p.l).toLowerCase().includes(q)));
+ const list=$('sort').value==='fit'?[...list0].sort((a,b)=>scoreFor(b.p).s-scoreFor(a.p).s||(b.p.d||0)-(a.p.d||0)):list0;
+ const upd=feed.updatedAt?new Date(feed.updatedAt*1000).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+ $('feed-meta').textContent=`Fit scores are estimates from each job’s title, company and location, not its full description. ${fresh} matching postings you haven’t applied to or hidden · ${all.length} open in total${upd?' · list updated '+upd:''}`;
+ if(!list.length){$('posts').innerHTML='<p class="empty">Nothing here. You’re caught up.</p>';$('more').hidden=true;return}
+ $('posts').innerHTML=list.slice(0,showN).map(({p,state})=>{
+  const u=safeUrl(p.u),when=p.d?new Date(p.d*1000).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+  const sc=scoreFor(p);
+  return `<article class="post${state?' done':''}">
+   <div class="score ${sc.cls}" title="Fit score"><b>${sc.s}</b><small>${sc.label}</small></div>
+   <div class="when">${esc(when)}</div>
+   <div><div class="co">${esc(p.c)}<span class="tag">${esc(p.cat)}</span></div><div>${esc(p.t)}</div><div class="meta">${esc(p.l||'Location not listed')}</div>${(r=>`<div class="resume ${r.k}">Use: ${r.k==='emb'?'Embedded':'SWE'} resume <span>· “${esc(r.why)}”</span></div>`)(resumeFor(p))}
+    <details class="why"><summary>Why this score</summary><ul>${sc.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul></details></div>
+   <div class="acts">${u?`<a class="btn go" href="${esc(u)}" target="_blank" rel="noopener">Apply ↗</a>`:''}
+    ${state==='applied'?'<span class="meta">Applied</span>':`<button data-applied="${esc(p.id)}">Mark applied</button>`}
+    ${state==='dismissed'?`<button data-unhide="${esc(p.id)}">Unhide</button>`:state?'':`<button data-hide="${esc(p.id)}">Hide</button>`}</div>
+  </article>`}).join('');
+ $('more').hidden=list.length<=showN;
+}
+$('posts').addEventListener('click',async e=>{
+ const t=e.target.closest('button');if(!t||!db)return;
+ if(t.dataset.hide)return write(db.doc('pstate/'+t.dataset.hide),'set',{state:'dismissed',at:today()});
+ if(t.dataset.unhide)return write(db.doc('pstate/'+t.dataset.unhide),'delete');
+ if(t.dataset.applied){
+  const p=(feed.postings||[]).find(x=>x.id===t.dataset.applied);if(!p)return;
+  t.disabled=true;
+  if(await addApp({company:p.c,title:p.t,link:p.u,date:today(),status:'Applied'}))
+   await write(db.doc('pstate/'+p.id),'set',{state:'applied',at:today()});
+  t.disabled=false;
+ }
+});
+['q-posts','f-cat','f-resume','sort','show-hidden'].forEach(id=>$(id).addEventListener(id==='q-posts'?'input':'change',()=>{showN=60;renderPosts()}));
+$('more').addEventListener('click',()=>{showN+=60;renderPosts()});
+
+/* ---------- views ---------- */
+function route(){
+ const v=location.hash==='#postings'?'postings':'applications';
+ $('view-applications').hidden=v!=='applications';$('view-postings').hidden=v!=='postings';
+ $('tab-applications').toggleAttribute('aria-current',false);$('tab-postings').toggleAttribute('aria-current',false);
+ $('tab-'+v).setAttribute('aria-current','page');
+}
+addEventListener('hashchange',route);route();
+
+/* ---------- data (Firebase) ---------- */
+const fbApp=initializeApp(firebaseConfig), auth=getAuth(fbApp), fs=getFirestore(fbApp);
+// Small wrapper so the rest of the page talks to "db" the same way everywhere. All data lives under users/<your uid>/.
+function scoped(uid){
+ const base=`users/${uid}/`;
+ const wrapRef=r=>({set:d=>setDoc(r,d),update:d=>updateDoc(r,d),delete:()=>deleteDoc(r)});
+ return{
+  doc:p=>wrapRef(doc(fs,base+p)),
+  collection:p=>({
+   doc:id=>wrapRef(id?doc(fs,base+p,id):doc(collection(fs,base+p))),
+   onSnapshot:(next,err)=>onSnapshot(collection(fs,base+p),s=>next({docs:s.docs.map(d=>({id:d.id,data:()=>d.data()})),metadata:s.metadata}),err),
+  }),
+  batchSet:async(p,rows)=>{for(let i=0;i<rows.length;i+=400){const b=writeBatch(fs);rows.slice(i,i+400).forEach(r=>b.set(doc(fs,base+p,r.id),r.data));await b.commit()}},
+ };
+}
+let unsubs=[];
+const showMain=on=>{['view-applications','view-postings'].forEach(id=>$(id).classList.toggle('gated',!on));document.querySelector('nav.tabs').hidden=!on;$('signin').hidden=on};
+$('signin-btn').addEventListener('click',()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(()=>note('Sign-in didn’t finish. Try again, and allow pop-ups for this site.')));
+$('signout').addEventListener('click',()=>signOut(auth));
+fetch('feed.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(f=>{feed=f;renderPosts()})
+ .catch(()=>{feed={postings:[]};$('posts').innerHTML='<p class="empty">The postings list couldn’t be loaded. Reload to try again.</p>'});
+onAuthStateChanged(auth,user=>{
+ unsubs.forEach(u=>u());unsubs=[];apps=[];pstate={};
+ if(!user){db=null;$('who').textContent='';$('signout').hidden=true;$('import').hidden=true;showMain(false);renderReadout();return}
+ db=scoped(user.uid);$('who').textContent=user.email||'';$('signout').hidden=false;showMain(true);note('');
+ const fail=()=>note('Lost the connection to your data. Reload the page to reconnect.');
+ let first=true;
+ unsubs.push(db.collection('apps').onSnapshot(s=>{
+  apps=s.docs.map(d=>({id:d.id,...d.data()}));
+  if(first&&!s.metadata.fromCache){first=false;$('import').hidden=apps.length>0}
+  else if(apps.length)$('import').hidden=true;
+  renderReadout();renderApps();renderPosts();
+ },fail));
+ unsubs.push(db.collection('pstate').onSnapshot(s=>{pstate={};s.docs.forEach(d=>pstate[d.id]=d.data().state);renderPosts()},fail));
+});
+$('import-file').addEventListener('change',async e=>{
+ const f=e.target.files[0];if(!f||!db)return;
+ try{
+  const data=JSON.parse(await f.text());
+  const rows=(data.applications||[]).filter(a=>a&&a.id&&a.company).map(a=>{const {id,...rest}=a;return{id:String(id),data:rest}});
+  if(!rows.length){note('That file has no applications in it.');return}
+  await db.batchSet('apps',rows);note(`Imported ${rows.length} applications.`);
+ }catch(err){note('That file couldn’t be imported. Make sure it’s my-applications.json.')}
+});
+}
+</script>
+</body>
+</html>
