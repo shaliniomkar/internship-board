@@ -1,6 +1,4 @@
-// Paste the config from Firebase: Project settings → Your apps → Web app → "SDK setup and configuration" → Config.
-// These values are safe to publish: your data is protected by the Firestore rules, not by hiding this file.
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBjk6tXi9zv2qFroQe4TjLMYn31L7qCTAo",
   authDomain: "internship-board-49ad6.firebaseapp.com",
   projectId: "internship-board-49ad6",
